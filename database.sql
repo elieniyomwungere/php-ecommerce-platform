@@ -1,105 +1,115 @@
--- SQL schema for e-commerce platform
+-- Database schema for E-commerce Platform
 
-CREATE TABLE users (
-    user_id INT PRIMARY KEY AUTO_INCREMENT,
-    username VARCHAR(50) NOT NULL,
+-- Users table
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    email VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-CREATE TABLE categories (
-    category_id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+-- Categories table
+CREATE TABLE IF NOT EXISTS categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE products (
-    product_id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    description TEXT NOT NULL,
+-- Products table
+CREATE TABLE IF NOT EXISTS products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
     price DECIMAL(10, 2) NOT NULL,
     category_id INT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (category_id) REFERENCES categories(category_id)
+    FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 
-CREATE TABLE orders (
-    order_id INT PRIMARY KEY AUTO_INCREMENT,
+-- Orders table
+CREATE TABLE IF NOT EXISTS orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
-    status ENUM('pending', 'completed', 'cancelled') NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('pending', 'completed', 'canceled') DEFAULT 'pending',
+    total DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE order_items (
-    order_item_id INT PRIMARY KEY AUTO_INCREMENT,
+-- Order Items table
+CREATE TABLE IF NOT EXISTS order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT,
     product_id INT,
     quantity INT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (order_id) REFERENCES orders(order_id),
-    FOREIGN KEY (product_id) REFERENCES products(product_id)
+    price DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
-CREATE TABLE reviews (
-    review_id INT PRIMARY KEY AUTO_INCREMENT,
+-- Reviews table
+CREATE TABLE IF NOT EXISTS reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT,
     user_id INT,
-    rating INT CHECK (rating BETWEEN 1 AND 5),
+    rating INT CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (product_id) REFERENCES products(product_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE coupons (
-    coupon_id INT PRIMARY KEY AUTO_INCREMENT,
-    code VARCHAR(50) NOT NULL,
-    discount DECIMAL(5, 2) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    expires_at DATETIME
+-- Coupons table
+CREATE TABLE IF NOT EXISTS coupons (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(255) NOT NULL UNIQUE,
+    discount DECIMAL(10, 2) NOT NULL,
+    expiration_date DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE payments (
-    payment_id INT PRIMARY KEY AUTO_INCREMENT,
+-- Payments table
+CREATE TABLE IF NOT EXISTS payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT,
+    payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     amount DECIMAL(10, 2) NOT NULL,
-    status ENUM('pending', 'completed', 'failed') NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (order_id) REFERENCES orders(order_id)
+    status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
+    FOREIGN KEY (order_id) REFERENCES orders(id)
 );
 
-CREATE TABLE shipping_methods (
-    shipping_method_id INT PRIMARY KEY AUTO_INCREMENT,
-    method_name VARCHAR(100) NOT NULL,
+-- Shipping Methods table
+CREATE TABLE IF NOT EXISTS shipping_methods (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    method_name VARCHAR(255) NOT NULL,
     cost DECIMAL(10, 2) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE settings (
-    setting_id INT PRIMARY KEY AUTO_INCREMENT,
-    setting_name VARCHAR(100) NOT NULL,
-    setting_value VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE admin_logs (
-    log_id INT PRIMARY KEY AUTO_INCREMENT,
-    admin_id INT,
-    action VARCHAR(255) NOT NULL,
+-- Settings table
+CREATE TABLE IF NOT EXISTS settings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    key_name VARCHAR(255) NOT NULL UNIQUE,
+    value TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE activity_logs (
-    log_id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT,
-    activity VARCHAR(255) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+-- Admin Logs table
+CREATE TABLE IF NOT EXISTS admin_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_id INT,
+    action VARCHAR(255),
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (admin_id) REFERENCES users(id)
 );
 
--- Add any additional constraints or indexes as needed
+-- Activity Logs table
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    action VARCHAR(255),
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
